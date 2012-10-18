@@ -1,0 +1,6 @@
+TO BUILD (if all the (re)source files were in the C: root):
+C:\>mingw32-make
+
+
+THE RESULT (C:\>dir, I have cut away useless info):
+17.10.2012  03:00            43 413 typerbawz.exe

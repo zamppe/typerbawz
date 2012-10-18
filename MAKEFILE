@@ -1,0 +1,7 @@
+CFLAGS = -ggdb -lmingw32 -lSDLmain -lSDL
+
+typerbawz.exe: typerbawz.c
+	gcc -o typerbawz.exe typerbawz.c $(CFLAGS)
+
+clean: 
+	del typerbawz.exe
