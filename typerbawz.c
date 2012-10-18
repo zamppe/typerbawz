@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 {  
     int x = 30;
     int y = 30;
+    int incrementing = 1;
     SDL_Surface *background = NULL;
     SDL_Surface *screen = NULL;
     SDL_Surface *message = NULL;
@@ -90,16 +91,25 @@ int main(int argc, char *argv[])
         SDL_FillRect( screen, &screen->clip_rect, SDL_MapRGB( screen->format, 0x00, 0x00, 0x00 ) );
         
 		applysurface(x, y, message, screen, NULL);
-        x += 1;
-        if (x > 600){
-          x = 50;
+        
+        if (incrementing){
+            x += 1;
+            if(x > 650){
+                incrementing = 0;
+            }
+        }else{
+            x -= 1;
+            if(x < 20){
+                incrementing = 1;
+            }
         }
+        
 		// RENDERING
 		if (SDL_Flip(screen) == -1) {
 			return 1;
 		}
 	}	
-
+    SDL_FreeSurface(message);
 	SDL_FreeSurface(background);
 	TTF_CloseFont(font);
 	TTF_Quit();
