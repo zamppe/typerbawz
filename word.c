@@ -1,75 +1,103 @@
 #include "word.h"
 
-void initWords(Words *words, size_t initialSize) {
-    words->array = (Word *)malloc(initialSize * sizeof(Word));
-    words->used = 0;
-    words->size = initialSize;
-    words->max = 3;
+void initWords ( Words *w, size_t initialSize ) {
+    w->array = (Word *)malloc(initialSize * sizeof(Word));
+    w->used = 0;
+    w->size = initialSize;
+    w->max = 3;
 }
 
-void freeAll(Words *words) {
-    free(words->array);
-    words->array = NULL;
-    words->used = words->size = 0;
+void freeWords ( Words *w ) {
+    free(w->array);
+    w->array = NULL;
+    w->used = w->size = 0;
 }
 
-int pushInto(Words *words, Word element) {
-    if (words->used == words->max){
+int pushIntoWords ( Words *w, Word element ) {
+    if ( w->used == w->max ){
         return 0;
     }
-    if (words->used == words->size) {
-        words->size += 1;
-        words->array = (Word *)realloc(words->array, words->size * sizeof(Word));
+    if ( w->used == w->size ) {
+        w->size += 1;
+        w->array = (Word *)realloc(w->array, w->size * sizeof(Word));
     }
-    words->array[words->used++] = element;
+    w->array[w->used++] = element;
     return 1;
 }
 
-void setString(Word *word, char *string){
-    word->string = string;
+void setString ( Word *w, char *string ) {
+    w->string = string;
 }
 
-void setVelocity(Word *word, double vx, double vy){
-    word->vx = vx;
-    word->vy = vy;
+void setVelocity ( Word *w, double vx, double vy ) {
+    w->vx = vx;
+    w->vy = vy;
 }
 
-void setPosition(Word *word, double newX, double newY){
-    word->x = newX;
-    word->y = newY;
+void setPosition ( Word *w, double newX, double newY ) {
+    w->x = newX;
+    w->y = newY;
 }
 
-void updatePosition(Word *word, double dt){
-    word->x += word->vx * dt;
-    word->y += word->vy * dt;
+void updatePosition ( Word *w, double dt ) {
+    w->x += w->vx * dt;
+    w->y += w->vy * dt;
 }
 
-void updatePositions(Words *words, double dt){
+void updatePositions ( Words *w, double dt ) {
     int i;
-    for(i = 0; i < words->used; i++){
-        updatePosition(&words->array[i], dt);
+    for (i = 0; i < w->used; i++) {
+        updatePosition(&w->array[i], dt);
     }
 
 }
 
-void reInitWord(Word *word, double newX, double newY, double vx, double vy, char *string){
-    word->x = newX;
-    word->y = newY;
-    word->vx = vx;
-    word->vy = vy;
-    word->string = string;
+void reInitWord ( Word *w, double newX, double newY, double vx, double vy, char *string ) {
+    w->x = newX;
+    w->y = newY;
+    w->vx = vx;
+    w->vy = vy;
+    w->string = string;
 }
 
-void printWords(Words *words){
+void printWords ( Words *w ) {
     int i;
-    for(i = 0; i < words->used; i++){
-        if(words->array[i].string[0] != '\0'){
-                printf("word i: %d x: %.2f y: %.2f vx: %.2f vy: %.2f string: %s\n",
-                        i, words->array[i].x, words->array[i].y, words->array[i].vx, words->array[i].vy, words->array[i].string);
-        }
+    printf("words size / used: %d / %d: \n", w->size, w->used);
+    for (i = 0; i < w->used; i++) {
+        printf("word i: %d x: %.2f y: %.2f vx: %.2f vy: %.2f string: %s\n",
+                i, w->array[i].x, w->array[i].y, w->array[i].vx, w->array[i].vy, w->array[i].string);
     }
 }
 
-int stringMatchesWord(Word *word, char *string){
-    return !(strcmp(string, word->string));
+int stringMatchesWord ( Word *w, char *string ) {
+    return !(strcmp(string, w->string));
+}
+
+void initWordpool( Wordpool *w, size_t initialSize ) {
+    w->strings = (char **)malloc(initialSize * sizeof(char **));
+    w->used = 0;
+    w->size = initialSize;
+}
+
+void freeWordpool ( Wordpool *w ) {
+    free(w->strings);
+    w->strings = NULL;
+    w->used = w->size = 0;
+}
+
+int pushIntoWordpool ( Wordpool *w, char *element ) {
+    if (w->used == w->size) {
+        w->size += 100;
+        w->strings = (char **)realloc(w->strings, w->size * sizeof(char **));
+    }
+    w->strings[w->used++] = element;
+    return 1;
+}
+
+void printWordpool ( Wordpool *w ) {
+    int i;
+    printf("wordpool size / used: %d / %d: \n", w->size, w->used);
+    for (i = 0; i < w->used; i++) {
+        printf("pool i: %i string: %s\n", i, w->strings[i]);
+    }
 }
