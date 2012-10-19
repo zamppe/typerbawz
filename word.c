@@ -1,67 +1,75 @@
 #include "word.h"
-#include <stdio.h>
-#include <string.h>
 
-
-
-void initializeWords(struct word *words, int size){
-    int i;
-    for(i = 0; i < size; i++){
-        words[i].x = 0.0;
-        words[i].y = 0.0;
-        words[i].vx = 0.0;
-        words[i].vy = 0.0;
-        words[i].string = "";
-    }
+void initWords(Words *words, size_t initialSize) {
+    words->array = (Word *)malloc(initialSize * sizeof(Word));
+    words->used = 0;
+    words->size = initialSize;
+    words->max = 3;
 }
 
-void moveWordTo(struct word *word, double newX, double newY){
+void freeAll(Words *words) {
+    free(words->array);
+    words->array = NULL;
+    words->used = words->size = 0;
+}
+
+int pushInto(Words *words, Word element) {
+    if (words->used == words->max){
+        return 0;
+    }
+    if (words->used == words->size) {
+        words->size += 1;
+        words->array = (Word *)realloc(words->array, words->size * sizeof(Word));
+    }
+    words->array[words->used++] = element;
+    return 1;
+}
+
+void setString(Word *word, char *string){
+    word->string = string;
+}
+
+void setVelocity(Word *word, double vx, double vy){
+    word->vx = vx;
+    word->vy = vy;
+}
+
+void setPosition(Word *word, double newX, double newY){
     word->x = newX;
     word->y = newY;
 }
 
-void pushWord(struct word *words, int size, char *string, double newX, double newY, double newVx, double newVy){
-    int i = 0;
-    while(words[i].string[0] != '\0'){
-        i++;
-        printf("%d \n", i);
-    }
-    moveWordTo(&words[i], newX, newY);
-    words[i].vx = newVx;
-    words[i].vy = newVy;
-    words[i].string = string;
-}
-
-
-void moveWord(struct word *words, int i, double dx, double dy){
-    words[i].x += dx;
-    words[i].y += dy;
-}
-
-void updateWordPosition(struct word *word,  double dt){
+void updatePosition(Word *word, double dt){
     word->x += word->vx * dt;
     word->y += word->vy * dt;
 }
 
-void updateWordPositions(struct word *words, int size, double dt){
+void updatePositions(Words *words, double dt){
     int i;
-    for(i = 0; i < size; i++){
-        updateWordPosition(&words[i], dt);
+    for(i = 0; i < words->used; i++){
+        updatePosition(&words->array[i], dt);
     }
 
 }
 
-void printWords(struct word *words, int size){
+void reInitWord(Word *word, double newX, double newY, double vx, double vy, char *string){
+    word->x = newX;
+    word->y = newY;
+    word->vx = vx;
+    word->vy = vy;
+    word->string = string;
+}
+
+void printWords(Words *words){
     int i;
-    for(i = 0; i < size; i++){
-        if(words[i].string[0] != '\0'){
-                printf("word%d.x: %.2f word%d.y: %.2f word%d.vx: %.2f word%d.vy: %.2f %s\n",
-                        i+1, words[i].x, i+1, words[i].y, i+1, words[i].vx, i+1, words[i].vy, words[i].string);
+    for(i = 0; i < words->used; i++){
+        if(words->array[i].string[0] != '\0'){
+                printf("word i: %d x: %.2f y: %.2f vx: %.2f vy: %.2f string: %s\n",
+                        i, words->array[i].x, words->array[i].y, words->array[i].vx, words->array[i].vy, words->array[i].string);
         }
-
     }
 }
 
-int stringMatchesWord(struct word *word, char *string){
+int stringMatchesWord(Word *word, char *string){
     return !(strcmp(string, word->string));
 }

@@ -1,15 +1,30 @@
 #ifndef _WORD_H_
 #define _WORD_H_
-struct word{
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef struct word{
     double x, y, vx, vy;
     char *string;
-};
-void initializeWords(struct word *words, int size);
-void moveWordTo(struct word *word, double newX, double newY);
-void pushWord(struct word *words, int size, char *string, double newX, double newY, double newVx, double newVy);
-void moveWord(struct word *words, int i, double dx, double dy);
-void updateWordPosition(struct word *word, double dt);
-void updateWordPositions(struct word *words, int size, double dt);
-void printWords(struct word *words, int size);
-int stringMatchesWord(struct word *word, char *string);
+}Word;
+
+typedef struct words {
+    Word *array;
+    size_t used;
+    size_t size;
+    int max;
+}Words;
+
+void initWords(Words *a, size_t initialSize);
+void freeAll(Words *a);
+int pushInto(Words *a, Word element);
+void setString(Word *word, char *string);
+void setVelocity(Word *word, double vx, double vy);
+void setPosition(Word *word, double newX, double newY);
+void updatePosition(Word *word, double dt);
+void updatePositions(Words *words, double dt);
+void reInitWord(Word *word, double newX, double newY, double vx, double vy, char *string);
+void printWords(Words *words);
+int stringMatchesWord(Word *word, char *string);
 #endif
