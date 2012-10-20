@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
+
 typedef struct word{
     double x, y, vx, vy;
     char *string;
+    struct SDL_SURFACE *surface;
 }Word;
 
 typedef struct words {
@@ -16,15 +18,25 @@ typedef struct words {
     int max;
 }Words;
 
-void initWords(Words *a, size_t initialSize);
-void freeAll(Words *a);
-int pushInto(Words *a, Word element);
-void setString(Word *word, char *string);
-void setVelocity(Word *word, double vx, double vy);
-void setPosition(Word *word, double newX, double newY);
-void updatePosition(Word *word, double dt);
-void updatePositions(Words *words, double dt);
-void reInitWord(Word *word, double newX, double newY, double vx, double vy, char *string);
-void printWords(Words *words);
-int stringMatchesWord(Word *word, char *string);
+typedef struct wordpool {
+    char **strings;
+    size_t used;
+    size_t size;
+}Wordpool;
+
+void initWords ( Words *w, size_t initialSize );
+void freeWords ( Words *w );
+int pushIntoWords ( Words *w, Word element );
+void setString ( Word *w, char *string );
+void setVelocity ( Word *w, double vx, double vy );
+void setPosition ( Word *w, double newX, double newY );
+void updatePosition ( Word *w, double dt );
+void updatePositions ( Words *w, double dt );
+void reInitWord ( Word *w, double newX, double newY, double vx, double vy, char *string );
+void printWords ( Words *w );
+int stringMatchesWord ( Word *w, char *string );
+void initWordpool ( Wordpool *w, size_t initialSize );
+void freeWordpool ( Wordpool *w );
+int pushIntoWordpool ( Wordpool *w, char *element );
+void printWordpool ( Wordpool *w );
 #endif
