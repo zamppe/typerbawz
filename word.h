@@ -1,9 +1,9 @@
 #ifndef _WORD_H_
 #define _WORD_H_
-#include "SDL/SDL.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 
 typedef struct word{
     double x, y, vx, vy;
