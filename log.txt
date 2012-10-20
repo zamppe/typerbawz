@@ -1,3 +1,3 @@
 INFO: Attempting to initialise everything.
 INFO: Everything has been initialised.
-INFO: Loaded SDL with flags = 16, width = 1024, height = 800
+INFO: Loaded SDL with flags = 16, width = 800, height = 600

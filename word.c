@@ -42,10 +42,6 @@ void setPosition ( Word *w, double newX, double newY ) {
 void updatePosition ( Word *w, double dt ) {
     w->x += w->vx * dt;
     w->y += w->vy * dt;
-    if(w->x < 0){
-        //todo: this needs to somehow know where the start is
-        w->x = 600;
-    }    
 }
 
 void updatePositions ( Words *w, double dt ) {
@@ -53,7 +49,6 @@ void updatePositions ( Words *w, double dt ) {
     for (i = 0; i < w->used; i++) {
         updatePosition(&w->array[i], dt);
     }
-    
 
 }
 
