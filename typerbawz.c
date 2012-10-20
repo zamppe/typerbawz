@@ -1,9 +1,11 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_ttf.h"
 #include "logging.h"
+#include "word.h"
+#include <stdio.h>
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH 1024
+#define HEIGHT 800
 #define BPP 32
 #define FPS 60
 #define RUNNING 1
@@ -43,6 +45,27 @@ int main(int argc, char *argv[])
     SDL_Surface *screen = NULL;
     SDL_Surface *message = NULL;
     
+    Words words; // floating strings on the screen
+    Wordpool pool; // the pool of strings from which floating strings are randomly selected
+    initWords(&words, 3);  // start with 3 strings on the screen
+    initWordpool(&pool, 100); // start with 100 strings of space, more space will be allocated automatically when needed
+
+    pushIntoWordpool(&pool, "manually");
+    pushIntoWordpool(&pool, "pushing");
+    pushIntoWordpool(&pool, "some");
+    pushIntoWordpool(&pool, "words");
+    pushIntoWordpool(&pool, "to");
+    pushIntoWordpool(&pool, "this");
+    pushIntoWordpool(&pool, "pool");
+    pushIntoWordpool(&pool, "for");
+    pushIntoWordpool(&pool, "little");
+    pushIntoWordpool(&pool, "testing");
+    
+    //                                  word moves 50 pixel / second to "left" once we have timing code
+    pushIntoWords ( &words, (Word) {500.0, 100.0, -50.0, 0.0, pool.strings[0], NULL} );
+    pushIntoWords ( &words, (Word) {500.0, 200.0, -500.0, 0.0, pool.strings[9], NULL} );
+    pushIntoWords ( &words, (Word) {500.0, 300.0, -10.0, 0.0, pool.strings[3], NULL} );        
+    
 	logfile = fopen("log.txt", "w");
 	if (logfile == 0) {
 		fprintf(stderr, "ERROR: Could not open logfile for writing.\n");
@@ -63,18 +86,17 @@ int main(int argc, char *argv[])
 		return 1;
 	}
     
-    if ((font = TTF_OpenFont("ARCADE_N.TTF", 18)) == NULL) {
+    if ((font = TTF_OpenFont("ARCADE_N.TTF", 16)) == NULL) {
     	return 1;
     }
 
 	fprintf(logfile, "INFO: Everything has been initialised.\n");
 	SDL_WM_SetCaption("typerbawz", NULL);
-	fprintf(logfile, "INFO: Loaded SDL with flags = %d, width = %d, height = %d\n", screen->flags, screen->w, screen->h);
-	message = TTF_RenderText_Solid(font, "Welchom", textcolor);
-	if (message == NULL) {
-		return 1;
-	}
+	
+    fprintf(logfile, "INFO: Loaded SDL with flags = %d, width = %d, height = %d\n", screen->flags, screen->w, screen->h); 
+
 	status = RUNNING;
+    int i;
 	while (status) {
 		// EVENTS
 		while (SDL_PollEvent(&event)) {
@@ -87,22 +109,21 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+        /*update */
+        updatePositions( &words, 0.01 );
+        
+        
+        /* render */
         //try commenting this and see the mess 
         SDL_FillRect( screen, &screen->clip_rect, SDL_MapRGB( screen->format, 0x00, 0x00, 0x00 ) );
-        
-		applysurface(x, y, message, screen, NULL);
-        
-        if (incrementing){
-            x += 1;
-            if(x > 650){
-                incrementing = 0;
-            }
-        }else{
-            x -= 1;
-            if(x < 20){
-                incrementing = 1;
-            }
+
+        for(i = 0; i < words.used; i++){           
+        	words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);
+            applysurface(words.array[i].x, words.array[i].y, words.array[i].surface, screen, NULL);
         }
+        
+        
+
         
 		// RENDERING
 		if (SDL_Flip(screen) == -1) {
