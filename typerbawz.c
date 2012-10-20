@@ -1,14 +1,8 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_ttf.h"
-
 #include "logging.h"
 #include "word.h"
-#include <time.h>
-#include <stdlib.h>
-
-
-
-
+#include <stdio.h>
 
 #define WIDTH 1024
 #define HEIGHT 800
@@ -44,34 +38,33 @@ void applysurface(int x, int y, SDL_Surface *src, SDL_Surface *dst, SDL_Rect *cl
 
 int main(int argc, char *argv[])
 {  
-    srand(time(NULL));
-    
-    int i, r;    
+    int x = 30;
+    int y = 30;
+    int incrementing = 1;
     SDL_Surface *background = NULL;
     SDL_Surface *screen = NULL;
+    SDL_Surface *message = NULL;
     
     Words words; // floating strings on the screen
-    Wordpool wordpool; // the pool of strings from which floating strings are randomly selected
+    Wordpool pool; // the pool of strings from which floating strings are randomly selected
     initWords(&words, 3);  // start with 3 strings on the screen
-    initWordpool(&wordpool, 100); // start with 100 strings of space, more space will be allocated automatically when needed
+    initWordpool(&pool, 100); // start with 100 strings of space, more space will be allocated automatically when needed
 
-    pushIntoWordpool(&wordpool, "manually");
-    pushIntoWordpool(&wordpool, "pushing");
-    pushIntoWordpool(&wordpool, "some");
-    pushIntoWordpool(&wordpool, "press q to pull random word from wordpool");
-    pushIntoWordpool(&wordpool, "to");
-    pushIntoWordpool(&wordpool, "this");
-    pushIntoWordpool(&wordpool, "pool");
-    pushIntoWordpool(&wordpool, "for");
-    pushIntoWordpool(&wordpool, "little");
-    pushIntoWordpool(&wordpool, "testing");
+    pushIntoWordpool(&pool, "manually");
+    pushIntoWordpool(&pool, "pushing");
+    pushIntoWordpool(&pool, "some");
+    pushIntoWordpool(&pool, "words");
+    pushIntoWordpool(&pool, "to");
+    pushIntoWordpool(&pool, "this");
+    pushIntoWordpool(&pool, "pool");
+    pushIntoWordpool(&pool, "for");
+    pushIntoWordpool(&pool, "little");
+    pushIntoWordpool(&pool, "testing");
     
     //                                  word moves 50 pixel / second to "left" once we have timing code
-    pushIntoWords ( &words, (Word) {500.0, 100.0, -10.0, 0.0, wordpool.strings[7], NULL} );
-    pushIntoWords ( &words, (Word) {500.0, 200.0, -50.0, 0.0, wordpool.strings[6], NULL} );
-    pushIntoWords ( &words, (Word) {300.0, 300.0, -1.0 , 0.0, wordpool.strings[3], NULL} );  
-
-
+    pushIntoWords ( &words, (Word) {500.0, 100.0, -50.0, 0.0, pool.strings[0], NULL} );
+    pushIntoWords ( &words, (Word) {500.0, 200.0, -500.0, 0.0, pool.strings[9], NULL} );
+    pushIntoWords ( &words, (Word) {500.0, 300.0, -10.0, 0.0, pool.strings[3], NULL} );        
     
 	logfile = fopen("log.txt", "w");
 	if (logfile == 0) {
@@ -102,14 +95,8 @@ int main(int argc, char *argv[])
 	
     fprintf(logfile, "INFO: Loaded SDL with flags = %d, width = %d, height = %d\n", screen->flags, screen->w, screen->h); 
 
-    //initialize texts
-    for(i = 0; i < words.used; i++){     
-        words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);
-    }
-    
-    
 	status = RUNNING;
-    
+    int i;
 	while (status) {
 		// EVENTS
 		while (SDL_PollEvent(&event)) {
@@ -119,13 +106,8 @@ int main(int argc, char *argv[])
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 					case SDLK_ESCAPE: status = QUIT; break;
-                    case SDLK_q:
-                        r = rand()%10;
-                        SDL_FreeSurface(words.array[0].surface); 
-                        setString(&words.array[0], wordpool.strings[r]); 
-                        words.array[0].surface = TTF_RenderText_Solid(font, words.array[0].string, textcolor);
 				}
-			} 
+			}
 		}
         /*update */
         updatePositions( &words, 0.01 );
@@ -133,27 +115,26 @@ int main(int argc, char *argv[])
         
         /* render */
         //try commenting this and see the mess 
-        
         SDL_FillRect( screen, &screen->clip_rect, SDL_MapRGB( screen->format, 0x00, 0x00, 0x00 ) );
 
-        for(i = 0; i < words.used; i++){        
+        for(i = 0; i < words.used; i++){           
+        	words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);
             applysurface(words.array[i].x, words.array[i].y, words.array[i].surface, screen, NULL);
         }
         
-        applysurface(50, 50, background, screen, NULL);
+        
 
+        
 		// RENDERING
 		if (SDL_Flip(screen) == -1) {
 			return 1;
 		}
 	}	
-    
+    SDL_FreeSurface(message);
 	SDL_FreeSurface(background);
 	TTF_CloseFont(font);
 	TTF_Quit();
 	fclose(logfile);
-    freeWords(&words);
-    freeWordpool(&wordpool);
 	SDL_Quit();
 
 	return 0;
