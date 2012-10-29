@@ -39,6 +39,10 @@ void setPosition ( Word *w, double newX, double newY ) {
     w->y = newY;
 }
 
+void setX ( Word *w, double newX ) {
+    w->x = newX;
+}
+
 void updatePosition ( Word *w, double dt ) {
     w->x += w->vx * dt;
     w->y += w->vy * dt;
@@ -76,6 +80,16 @@ void printWords ( Words *w ) {
 
 int stringMatchesWord ( Word *w, char *string ) {
     return !(strcmp(string, w->string));
+}
+
+int stringMatchesWords ( Words *w, char *string ) {
+    int i;
+    for (i = 0; i < w->used; i++) {
+        if (stringMatchesWord(&w->array[i], string)){
+            return i + 1;
+        }
+    }
+    return -1;
 }
 
 void initWordpool( Wordpool *w, size_t initialSize ) {

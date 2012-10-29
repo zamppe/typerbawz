@@ -49,27 +49,28 @@ int main(int argc, char *argv[])
     int i, r;    
     SDL_Surface *background = NULL;
     SDL_Surface *screen = NULL;
+    SDL_Surface *typefieldsurface = NULL;
     
     Words words; // floating strings on the screen
     Wordpool wordpool; // the pool of strings from which floating strings are randomly selected
     initWords(&words, 3);  // start with 3 strings on the screen
     initWordpool(&wordpool, 100); // start with 100 strings of space, more space will be allocated automatically when needed
 
-    pushIntoWordpool(&wordpool, "manually");
-    pushIntoWordpool(&wordpool, "pushing");
-    pushIntoWordpool(&wordpool, "some");
-    pushIntoWordpool(&wordpool, "press q to pull random word from wordpool");
+    pushIntoWordpool(&wordpool, "try");
     pushIntoWordpool(&wordpool, "to");
+    pushIntoWordpool(&wordpool, "type");
+    pushIntoWordpool(&wordpool, "press");
+    pushIntoWordpool(&wordpool, "shittink");
     pushIntoWordpool(&wordpool, "this");
     pushIntoWordpool(&wordpool, "pool");
     pushIntoWordpool(&wordpool, "for");
     pushIntoWordpool(&wordpool, "little");
     pushIntoWordpool(&wordpool, "testing");
     
-    //                                  word moves 50 pixel / second to "left" once we have timing code
-    pushIntoWords ( &words, (Word) {500.0, 100.0, -10.0, 0.0, wordpool.strings[7], NULL} );
-    pushIntoWords ( &words, (Word) {500.0, 200.0, -50.0, 0.0, wordpool.strings[6], NULL} );
-    pushIntoWords ( &words, (Word) {300.0, 300.0, -1.0 , 0.0, wordpool.strings[3], NULL} );  
+    //                                  word moves 10 pixel / second to "left"
+    pushIntoWords ( &words, (Word) {500.0, 100.0, -10.0, 0.0, wordpool.strings[0], NULL} );
+    pushIntoWords ( &words, (Word) {500.0, 200.0, -50.0, 0.0, wordpool.strings[1], NULL} );
+    pushIntoWords ( &words, (Word) {300.0, 300.0, -1.0 , 0.0, wordpool.strings[2], NULL} );  
 
 
     
@@ -109,30 +110,94 @@ int main(int argc, char *argv[])
     
     
 	status = RUNNING;
-    
+    char typefield[20];
+    for (i = 0; i < 20; i++){
+        typefield[i] = 0;
+    }
 	while (status) {
 		// EVENTS
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				status = QUIT;
 			}
+            /*
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 					case SDLK_ESCAPE: status = QUIT; break;
                     case SDLK_q:
                         r = rand()%10;
                         SDL_FreeSurface(words.array[0].surface); 
-                        setString(&words.array[0], wordpool.strings[r]); 
+                        //setString(&words.array[0], wordpool.strings[r]); 
+                        setString(&words.array[0], "q is down"); 
                         words.array[0].surface = TTF_RenderText_Solid(font, words.array[0].string, textcolor);
 				}
-			} 
+			}
+            */ 
+            if (event.type == SDL_KEYDOWN) {
+                //type chars
+                if(event.key.keysym.sym > 96 && event.key.keysym.sym < 123){     
+                    //find first empty character
+                    for (i = 0; i < 19; i++){
+                        if(typefield[i] == 0){
+                            typefield[i] = event.key.keysym.sym;                 
+                            break;
+                        }
+                    }
+                }
+                //backspace
+                else if(event.key.keysym.sym == 8){
+                    //find last nonempty character
+                    for(i = 18; i >= 0; i--){
+                        if(typefield[i] != 0){
+                            typefield[i] = 0;
+                            break;
+                        }
+                    }
+                }
+                //enter || backspace
+                else if(event.key.keysym.sym == 13 || event.key.keysym.sym == 32){                
+                    //do teh comparison
+                    if (i = stringMatchesWords(&words, typefield)){
+                        if (i != -1){
+                            //there has been a match, do some magic
+                            //pull new word from word pool and put at words[i] 
+                            
+                            r = rand()%10;
+                            setX(&words.array[i-1], 600);
+                            setString(&words.array[i-1], wordpool.strings[r]); 
+                            SDL_FreeSurface(words.array[i-1].surface);
+                            words.array[i-1].surface = TTF_RenderText_Solid(font, words.array[i-1].string, textcolor);
+                        }
+                    }
+                    //fprintf(logfile, "%d\n", i);
+                    
+                    //clear typefield
+                    for (i = 0; i < 20; i++){
+                        typefield[i] = 0;
+                    }
+                }
+                //sprintf(typefield, "%s", SDL_GetKeyName(event.key.keysym.sym));             
+                //setString(&words.array[0], (char*) typefield); 
+                //words.array[0].surface = TTF_RenderText_Solid(font, words.array[0].string, textcolor);
+                //SDL_FreeSurface(words.array[0].surface); 
+                //words.array[0].surface = TTF_RenderText_Solid(font, typefield, textcolor);
+            }
+            /*
+            else if (event.type == SDL_KEYUP) {
+            	switch (event.key.keysym.sym) {
+					case SDLK_q:
+                        SDL_FreeSurface(words.array[0].surface); 
+                        setString(&words.array[0], "q is up"); 
+                        words.array[0].surface = TTF_RenderText_Solid(font, words.array[0].string, textcolor);
+                }
+            }
+            */
 		}
         /*update */
         updatePositions( &words, 0.01 );
-        
+               
         
         /* render */
-        //try commenting this and see the mess 
         
         SDL_FillRect( screen, &screen->clip_rect, SDL_MapRGB( screen->format, 0x00, 0x00, 0x00 ) );
 
@@ -142,7 +207,10 @@ int main(int argc, char *argv[])
         
         applysurface(50, 50, background, screen, NULL);
 
-		// RENDERING
+        SDL_FreeSurface( typefieldsurface ); 
+        typefieldsurface = TTF_RenderText_Solid(font, typefield, textcolor);     
+        applysurface(WIDTH/2, HEIGHT-30, typefieldsurface, screen, NULL);	    
+        
 		if (SDL_Flip(screen) == -1) {
 			return 1;
 		}
@@ -159,6 +227,7 @@ int main(int argc, char *argv[])
 	return 0;
 	// End of main()
 }
+ 
 
 void applysurface(int x, int y, SDL_Surface *src, SDL_Surface *dst, SDL_Rect *clip) {
 	// Make a temporary rectangle to hold the offsets
