@@ -46,19 +46,26 @@ int main(int argc, char *argv[])
 {  
     srand(time(NULL));
     
-    int i, r;    
+    int i, j, r;    
     SDL_Surface *background = NULL;
     SDL_Surface *screen = NULL;
     SDL_Surface *typefieldsurface = NULL;
     
+    
+    logfile = fopen("log.txt", "w");
+	if (logfile == 0) {
+		fprintf(stderr, "ERROR: Could not open logfile for writing.\n");
+	}
+    
     Words words; // floating strings on the screen
     Wordpool wordpool; // the pool of strings from which floating strings are randomly selected
     initWords(&words, 3);  // start with 3 strings on the screen
-    initWordpool(&wordpool, 100); // start with 100 strings of space, more space will be allocated automatically when needed
-
+    initWordpool(&wordpool, 100); // start with 100 strings of space, more space will be allocated automatically when needed  
+    
     pushIntoWordpool(&wordpool, "try");
     pushIntoWordpool(&wordpool, "to");
     pushIntoWordpool(&wordpool, "type");
+     /*   
     pushIntoWordpool(&wordpool, "press");
     pushIntoWordpool(&wordpool, "shittink");
     pushIntoWordpool(&wordpool, "this");
@@ -66,6 +73,20 @@ int main(int argc, char *argv[])
     pushIntoWordpool(&wordpool, "for");
     pushIntoWordpool(&wordpool, "little");
     pushIntoWordpool(&wordpool, "testing");
+    */
+    
+    FILE * pFile;
+    char baffer[30];
+    pFile = fopen ("wordsEn.txt" , "r");
+    if (pFile == NULL) {
+        perror ("Error opening file");
+    } 
+    else {
+        while ( fgets (baffer , 31 , pFile) != NULL) {                                                    
+            pushIntoWordpool(&wordpool, baffer);
+        }
+    fclose (pFile);
+    } 
     
     //                                  word moves 10 pixel / second to "left"
     pushIntoWords ( &words, (Word) {500.0, 100.0, -10.0, 0.0, wordpool.strings[0], NULL} );
@@ -73,11 +94,7 @@ int main(int argc, char *argv[])
     pushIntoWords ( &words, (Word) {300.0, 300.0, -1.0 , 0.0, wordpool.strings[2], NULL} );  
 
 
-    
-	logfile = fopen("log.txt", "w");
-	if (logfile == 0) {
-		fprintf(stderr, "ERROR: Could not open logfile for writing.\n");
-	}
+
     
     fprintf(logfile, "INFO: Attempting to initialise everything.\n");
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -107,6 +124,9 @@ int main(int argc, char *argv[])
     for(i = 0; i < words.used; i++){     
         words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);
     }
+    for (i = 0; i < wordpool.used; i++) {
+        fprintf(logfile, "pool i: %d string: %s\n", i, wordpool.strings[i]);
+    }   
     
     
 	status = RUNNING;
@@ -157,17 +177,15 @@ int main(int argc, char *argv[])
                 //enter || backspace
                 else if(event.key.keysym.sym == 13 || event.key.keysym.sym == 32){                
                     //do teh comparison
-                    if (i = stringMatchesWords(&words, typefield)){
-                        if (i != -1){
-                            //there has been a match, do some magic
-                            //pull new word from word pool and put at words[i] 
-                            
-                            r = rand()%10;
-                            setX(&words.array[i-1], 600);
-                            setString(&words.array[i-1], wordpool.strings[r]); 
-                            SDL_FreeSurface(words.array[i-1].surface);
-                            words.array[i-1].surface = TTF_RenderText_Solid(font, words.array[i-1].string, textcolor);
-                        }
+                    if ((i = stringMatchesWords(&words, typefield)) != -1){                        
+                        //there has been a match, do some magic
+                        //pull new word from word pool and put at words[i] 
+                        
+                        r = rand()%wordpool.used;                      
+                        setX(&words.array[i], 600);
+                        setString(&words.array[i], wordpool.strings[r]); 
+                        SDL_FreeSurface(words.array[i].surface);
+                        words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);                        
                     }
                     //fprintf(logfile, "%d\n", i);
                     

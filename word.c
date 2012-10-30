@@ -86,7 +86,7 @@ int stringMatchesWords ( Words *w, char *string ) {
     int i;
     for (i = 0; i < w->used; i++) {
         if (stringMatchesWord(&w->array[i], string)){
-            return i + 1;
+            return i;
         }
     }
     return -1;
@@ -95,7 +95,7 @@ int stringMatchesWords ( Words *w, char *string ) {
 void initWordpool( Wordpool *w, size_t initialSize ) {
     w->strings = (char **)malloc(initialSize * sizeof(char **));
     w->used = 0;
-    w->size = initialSize;
+    w->size = initialSize;   
 }
 
 void freeWordpool ( Wordpool *w ) {
@@ -104,13 +104,13 @@ void freeWordpool ( Wordpool *w ) {
     w->used = w->size = 0;
 }
 
-int pushIntoWordpool ( Wordpool *w, char *element ) {
+void pushIntoWordpool ( Wordpool *w, char *element ) {
     if (w->used == w->size) {
-        w->size += 100;
+        w->size *= 2;
         w->strings = (char **)realloc(w->strings, w->size * sizeof(char **));
     }
-    w->strings[w->used++] = element;
-    return 1;
+    if(element[strlen(element)-1] == '\n') element[strlen(element)-1] = '\0';
+    w->strings[w->used++] = strdup(element);
 }
 
 void printWordpool ( Wordpool *w ) {

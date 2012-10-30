@@ -39,6 +39,6 @@ int stringMatchesWord ( Word *w, char *string );
 int stringMatchesWords ( Words *w, char *string );
 void initWordpool ( Wordpool *w, size_t initialSize );
 void freeWordpool ( Wordpool *w );
-int pushIntoWordpool ( Wordpool *w, char *element );
+void pushIntoWordpool ( Wordpool *w, char *element );
 void printWordpool ( Wordpool *w );
 #endif
