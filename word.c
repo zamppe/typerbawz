@@ -27,8 +27,9 @@ int pushIntoWords ( Words *w, Word element, int fontsize ) {
     return 1;
 }
 
-void setString ( Word *w, char *string ) {
+void setString ( Word *w, char *string, int fontsize ) {
     w->string = string;
+    w->w = fontsize * strlen(string);
 }
 
 void setVelocity ( Word *w, double vx, double vy ) {
@@ -51,18 +52,44 @@ void setX ( Word *w, double newX ) {
 }
 
 int wordsCollide( Word *w1, Word *w2 ) {
-    //if ( w1->x < (w2->x + w2->w) && (w1->x + w1->w) > w2->x && w1->y < (w2->y + w2->h) && (w1->y + w1->h) > w2->y ) {
-        //return 1;
-    //}
-    //if ( w1->x <= (w2->x + w2->w) && w1->x >= w2->x && w1->y <= (w2->y + w2->h) && w1->y >= w2->y ) { return 1; } //topleft
-    //if ( w1->x <= (w2->x + w2->w) && w1->x >= w2->x && (w1->y + w1->h) <= (w2->y + w2->h) && (w1->y + w1->h) >= w2->y ) { return 1; } //bottomleft
-    //if ( (w1->x + w1->w) <= (w2->x + w2->w) && (w1->x + w1->w) >= w2->x && w1->y <= (w2->y + w2->h) && w1->y >= w2->y ) { return 1; } //topright
-    //if ( (w1->x + w1->w) <= (w2->x + w2->w) && (w1->x + w1->w) >= w2->x && (w1->y + w1->h) <= (w2->y + w2->h) && (w1->y + w1->h) >= w2->y ) { return 1; } //bottomright
-    if ( w1->x < (w2->x+w2->w) && w1->x > w2->x && w1->y < (w2->y+w2->h) && w1->y > w2->y ) { return 1; } //topleft
-    if ( w1->x < (w2->x+w2->w) && w1->x > w2->x && (w1->y+w1->h) < (w2->y+w2->h) && (w1->y+w1->h) > w2->y ) { return 1; } //bottomleft
-    if ( (w1->x+w1->w) < (w2->x+w2->w) && (w1->x+w1->w) > w2->x && w1->y < (w2->y+w2->h) && w1->y > w2->y ) { return 1; } //topright
-    if ( (w1->x+w1->w) < (w2->x+w2->w) && (w1->x+w1->w) > w2->x && (w1->y+w1->h) < (w2->y+w2->h) && (w1->y+w1->h) > w2->y ) { return 1; } //bottomright    
     
+    if(    (  w1->x          < (w2->x + w2->w) ) 
+        && ( (w1->x + w1->w) >  w2->x          ) 
+        && (  w1->y          < (w2->y + w2->h) ) 
+        && ( (w1->y + w1->h) >  w2->y          ) 
+      ) { return 1; }
+    
+
+    /*
+    //if topleft corner of w1 is inside area of w2, return 1
+    if(    ( w1->x           < (w2->x + w2->w) ) 
+        && ( w1->x           >  w2->x          ) 
+        && ( w1->y           < (w2->y + w2->h) ) 
+        && ( w1->y           >  w2->y          ) 
+      ) { return 1; } 
+      
+    //if bottomleft corner of w1 is inside area of w2, return 1    
+    if(    (  w1->x          < (w2->x + w2->w) ) 
+        && (  w1->x          >  w2->x          ) 
+        && ( (w1->y + w1->h) < (w2->y + w2->h) ) 
+        && ( (w1->y + w1->h) >  w2->y          ) 
+      ) { return 1; } 
+      
+    //if topright corner of w1 is inside area of w2, return 1    
+    if(    ( (w1->x + w1->w) < (w2->x + w2->w) ) 
+        && ( (w1->x + w1->w) >  w2->x          ) 
+        && (  w1->y          < (w2->y + w2->h) ) 
+        && (  w1->y          >  w2->y          ) 
+      ) { return 1; } 
+      
+    //if bottomright corner of w1 is inside area of w2, return 1    
+    if(    ( (w1->x + w1->w) < (w2->x + w2->w) ) 
+        && ( (w1->x + w1->w) >  w2->x          ) 
+        && ( (w1->y + w1->h) < (w2->y + w2->h) ) 
+        && ( (w1->y + w1->h) >  w2->y          ) 
+      ) { return 1; } 
+    */     
+      
     return 0;
 }
 

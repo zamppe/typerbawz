@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 
                         //randomize the index for pulling a new string from the wordpool
                         r = ( rand()+rand()+rand()+rand() ) % wordpool.used;                                              
-                        setString(&words.array[i], wordpool.strings[r]); 
+                        setString(&words.array[i], wordpool.strings[r], fontsize); 
                         
                         x = WIDTH - strlen(wordpool.strings[r]) * fontsize;
                         y = rand() % (HEIGHT - fontsize*2) + fontsize;
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
         for(i = 0; i < words.used; i++) {  
             if( words.array[i].x < 0 ) {
                 r = ( rand()+rand()+rand()+rand() ) % wordpool.used;                                              
-                setString(&words.array[i], wordpool.strings[r]); 
+                setString(&words.array[i], wordpool.strings[r], fontsize); 
                 
                 x = WIDTH - strlen(wordpool.strings[r]) * fontsize;
                 y = rand() % (HEIGHT - fontsize*2) + fontsize;

@@ -27,7 +27,7 @@ typedef struct wordpool {
 void initWords ( Words *w, size_t initialSize );
 void freeWords ( Words *w );
 int pushIntoWords ( Words *w, Word element, int fontsize );
-void setString ( Word *w, char *string );
+void setString ( Word *w, char *string, int fontsize );
 void setVelocity ( Word *w, double vx, double vy );
 void addVelocity ( Word *w, double dvx, double dvy );
 void setPosition ( Word *w, double newX, double newY );
