@@ -4,7 +4,7 @@ void initWords ( Words *w, size_t initialSize ) {
     w->array = (Word *)malloc(initialSize * sizeof(Word));
     w->used = 0;
     w->size = initialSize;
-    w->max = 3;
+    w->max = 20;
 }
 
 void freeWords ( Words *w ) {
@@ -13,7 +13,7 @@ void freeWords ( Words *w ) {
     w->used = w->size = 0;
 }
 
-int pushIntoWords ( Words *w, Word element ) {
+int pushIntoWords ( Words *w, Word element, int fontsize ) {
     if ( w->used == w->max ){
         return 0;
     }
@@ -21,6 +21,8 @@ int pushIntoWords ( Words *w, Word element ) {
         w->size += 1;
         w->array = (Word *)realloc(w->array, w->size * sizeof(Word));
     }
+    element.w = fontsize * strlen(element.string);
+    element.h = fontsize;    
     w->array[w->used++] = element;
     return 1;
 }
@@ -34,6 +36,11 @@ void setVelocity ( Word *w, double vx, double vy ) {
     w->vy = vy;
 }
 
+void addVelocity ( Word *w, double dvx, double dvy ) {
+    w->vx += dvx;
+    w->vy += dvy;
+}
+
 void setPosition ( Word *w, double newX, double newY ) {
     w->x = newX;
     w->y = newY;
@@ -43,13 +50,25 @@ void setX ( Word *w, double newX ) {
     w->x = newX;
 }
 
+int wordsCollide( Word *w1, Word *w2 ) {
+    //if ( w1->x < (w2->x + w2->w) && (w1->x + w1->w) > w2->x && w1->y < (w2->y + w2->h) && (w1->y + w1->h) > w2->y ) {
+        //return 1;
+    //}
+    //if ( w1->x <= (w2->x + w2->w) && w1->x >= w2->x && w1->y <= (w2->y + w2->h) && w1->y >= w2->y ) { return 1; } //topleft
+    //if ( w1->x <= (w2->x + w2->w) && w1->x >= w2->x && (w1->y + w1->h) <= (w2->y + w2->h) && (w1->y + w1->h) >= w2->y ) { return 1; } //bottomleft
+    //if ( (w1->x + w1->w) <= (w2->x + w2->w) && (w1->x + w1->w) >= w2->x && w1->y <= (w2->y + w2->h) && w1->y >= w2->y ) { return 1; } //topright
+    //if ( (w1->x + w1->w) <= (w2->x + w2->w) && (w1->x + w1->w) >= w2->x && (w1->y + w1->h) <= (w2->y + w2->h) && (w1->y + w1->h) >= w2->y ) { return 1; } //bottomright
+    if ( w1->x < (w2->x+w2->w) && w1->x > w2->x && w1->y < (w2->y+w2->h) && w1->y > w2->y ) { return 1; } //topleft
+    if ( w1->x < (w2->x+w2->w) && w1->x > w2->x && (w1->y+w1->h) < (w2->y+w2->h) && (w1->y+w1->h) > w2->y ) { return 1; } //bottomleft
+    if ( (w1->x+w1->w) < (w2->x+w2->w) && (w1->x+w1->w) > w2->x && w1->y < (w2->y+w2->h) && w1->y > w2->y ) { return 1; } //topright
+    if ( (w1->x+w1->w) < (w2->x+w2->w) && (w1->x+w1->w) > w2->x && (w1->y+w1->h) < (w2->y+w2->h) && (w1->y+w1->h) > w2->y ) { return 1; } //bottomright    
+    
+    return 0;
+}
+
 void updatePosition ( Word *w, double dt ) {
     w->x += w->vx * dt;
-    w->y += w->vy * dt;
-    if(w->x < 0){
-        //todo: this needs to somehow know where the start is
-        w->x = 600;
-    }    
+    w->y += w->vy * dt; 
 }
 
 void updatePositions ( Words *w, double dt ) {

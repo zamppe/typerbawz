@@ -6,7 +6,7 @@
 
 
 typedef struct word{
-    double x, y, vx, vy;
+    double x, y, vx, vy, w, h;
     char *string;
     struct SDL_SURFACE *surface;
 }Word;
@@ -26,11 +26,13 @@ typedef struct wordpool {
 
 void initWords ( Words *w, size_t initialSize );
 void freeWords ( Words *w );
-int pushIntoWords ( Words *w, Word element );
+int pushIntoWords ( Words *w, Word element, int fontsize );
 void setString ( Word *w, char *string );
 void setVelocity ( Word *w, double vx, double vy );
+void addVelocity ( Word *w, double dvx, double dvy );
 void setPosition ( Word *w, double newX, double newY );
 void setX ( Word *w, double newX );
+int wordsCollide( Word *w1, Word *w2 );
 void updatePosition ( Word *w, double dt );
 void updatePositions ( Words *w, double dt );
 void reInitWord ( Word *w, double newX, double newY, double vx, double vy, char *string );

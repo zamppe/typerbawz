@@ -43,13 +43,21 @@ int GAME_STATE;
 void applysurface(int x, int y, SDL_Surface *src, SDL_Surface *dst, SDL_Rect *clip);
 
 int main(int argc, char *argv[])
-{  
-    srand(time(NULL));
+{    
+    srand(time(NULL)); //init rand seed
+  
+    int i, j, r;    //index and rand
     
-    int i, j, r;    
+    double x, y; //temporary double values
+    
+    int thisframe, prevframe; //time calculation
+    double dt;    // delta time
+    
     SDL_Surface *background = NULL;
-    SDL_Surface *screen = NULL;
-    SDL_Surface *typefieldsurface = NULL;
+    SDL_Surface *screen = NULL; //main surface
+    SDL_Surface *typefieldsurface = NULL; 
+    
+    int fontsize = WIDTH / 64; //1024/64=16, 1280/64=20, 1600/64=25, 1920/64=30
     
     
     logfile = fopen("log.txt", "w");
@@ -58,44 +66,8 @@ int main(int argc, char *argv[])
 	}
     
     Words words; // floating strings on the screen
-    Wordpool wordpool; // the pool of strings from which floating strings are randomly selected
-    initWords(&words, 3);  // start with 3 strings on the screen
-    initWordpool(&wordpool, 100); // start with 100 strings of space, more space will be allocated automatically when needed  
-    
-    pushIntoWordpool(&wordpool, "try");
-    pushIntoWordpool(&wordpool, "to");
-    pushIntoWordpool(&wordpool, "type");
-     /*   
-    pushIntoWordpool(&wordpool, "press");
-    pushIntoWordpool(&wordpool, "shittink");
-    pushIntoWordpool(&wordpool, "this");
-    pushIntoWordpool(&wordpool, "pool");
-    pushIntoWordpool(&wordpool, "for");
-    pushIntoWordpool(&wordpool, "little");
-    pushIntoWordpool(&wordpool, "testing");
-    */
-    
-    FILE * pFile;
-    char baffer[30];
-    pFile = fopen ("wordsEn.txt" , "r");
-    if (pFile == NULL) {
-        perror ("Error opening file");
-    } 
-    else {
-        while ( fgets (baffer , 31 , pFile) != NULL) {                                                    
-            pushIntoWordpool(&wordpool, baffer);
-        }
-    fclose (pFile);
-    } 
-    
-    //                                  word moves 10 pixel / second to "left"
-    pushIntoWords ( &words, (Word) {500.0, 100.0, -10.0, 0.0, wordpool.strings[0], NULL} );
-    pushIntoWords ( &words, (Word) {500.0, 200.0, -50.0, 0.0, wordpool.strings[1], NULL} );
-    pushIntoWords ( &words, (Word) {300.0, 300.0, -1.0 , 0.0, wordpool.strings[2], NULL} );  
+    Wordpool wordpool; // the pool of strings from which strings are randomly selected
 
-
-
-    
     fprintf(logfile, "INFO: Attempting to initialise everything.\n");
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		fprintf(logfile, "ERROR: Initialisation failed.\n");
@@ -117,16 +89,51 @@ int main(int argc, char *argv[])
 
 	fprintf(logfile, "INFO: Everything has been initialised.\n");
 	SDL_WM_SetCaption("typerbawz", NULL);
-	
+
     fprintf(logfile, "INFO: Loaded SDL with flags = %d, width = %d, height = %d\n", screen->flags, screen->w, screen->h); 
 
-    //initialize texts
+    //main game variables for difficulty tuning!!
+    int addv = 100; //every 1 seconds add velocity on wordsa
+    int addvcounter = 0;
+    double amountv = -1.0;
+    
+    int adda = 200; //every 20 seconds     
+    int addacounter = 0;
+    int amounta = 1;
+    
+    double initv = -10.0;
+    int initamount = 3;
+    
+    
+    initWords(&words, initamount);  // start with initamount words on the screen
+    initWordpool(&wordpool, 100); // start with 100 strings of space, more space will be allocated automatically when needed  
+    
+    //fill wordpool with content
+    FILE * pFile;
+    char baffer[30];
+    pFile = fopen ("wordsEn.txt" , "r");
+    if (pFile == NULL) {
+        perror ("Error opening file");
+    } 
+    else {
+        while ( fgets (baffer , 30 , pFile) != NULL) {                                                    
+            pushIntoWordpool(&wordpool, baffer);
+        }
+    fclose (pFile);
+    }     
+    //initial level
+    for(i = 0; i < initamount; i++) {
+        r = ( rand()+rand()+rand()+rand() ) % wordpool.used;            
+        x = (double) (WIDTH - strlen(wordpool.strings[r]) * fontsize);
+        y = HEIGHT / (i + 2);
+        pushIntoWords ( &words, (Word) {x, y, initv, 0.0, 0.0, 0.0, wordpool.strings[r], NULL}, fontsize );
+    }
+    
+    
+    //initialize text surfaces
     for(i = 0; i < words.used; i++){     
         words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);
     }
-    for (i = 0; i < wordpool.used; i++) {
-        fprintf(logfile, "pool i: %d string: %s\n", i, wordpool.strings[i]);
-    }   
     
     
 	status = RUNNING;
@@ -134,7 +141,11 @@ int main(int argc, char *argv[])
     for (i = 0; i < 20; i++){
         typefield[i] = 0;
     }
+    thisframe = SDL_GetTicks();
 	while (status) {
+        prevframe = thisframe;
+        thisframe = SDL_GetTicks();
+        dt = ((double) (thisframe - prevframe)) / 1000;
 		// EVENTS
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
@@ -154,8 +165,9 @@ int main(int argc, char *argv[])
 			}
             */ 
             if (event.type == SDL_KEYDOWN) {
+                //fprintf(logfile, "%d\n", event.key.keysym.sym);
                 //type chars
-                if(event.key.keysym.sym > 96 && event.key.keysym.sym < 123){     
+                if(event.key.keysym.sym > 96 && event.key.keysym.sym < 123 || event.key.keysym.sym == 39 ){     
                     //find first empty character
                     for (i = 0; i < 19; i++){
                         if(typefield[i] == 0){
@@ -174,21 +186,26 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
-                //enter || backspace
+                //enter || space
                 else if(event.key.keysym.sym == 13 || event.key.keysym.sym == 32){                
                     //do teh comparison
                     if ((i = stringMatchesWords(&words, typefield)) != -1){                        
-                        //there has been a match, do some magic
-                        //pull new word from word pool and put at words[i] 
-                        
-                        r = rand()%wordpool.used;                      
-                        setX(&words.array[i], 600);
+                        //there has been a match
+
+                        //randomize the index for pulling a new string from the wordpool
+                        r = ( rand()+rand()+rand()+rand() ) % wordpool.used;                                              
                         setString(&words.array[i], wordpool.strings[r]); 
+                        
+                        x = WIDTH - strlen(wordpool.strings[r]) * fontsize;
+                        y = rand() % (HEIGHT - fontsize*2) + fontsize;
+                        
+                        setPosition( &words.array[i], x, y );                                                
+                        
                         SDL_FreeSurface(words.array[i].surface);
                         words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);                        
                     }
                     //fprintf(logfile, "%d\n", i);
-                    
+                    //
                     //clear typefield
                     for (i = 0; i < 20; i++){
                         typefield[i] = 0;
@@ -211,8 +228,89 @@ int main(int argc, char *argv[])
             }
             */
 		}
+        
         /*update */
-        updatePositions( &words, 0.01 );
+        
+        updatePositions( &words, dt );
+        //
+        for(i = 0; i < words.used; i++) {  
+            if( words.array[i].x < 0 ) {
+                r = ( rand()+rand()+rand()+rand() ) % wordpool.used;                                              
+                setString(&words.array[i], wordpool.strings[r]); 
+                
+                x = WIDTH - strlen(wordpool.strings[r]) * fontsize;
+                y = rand() % (HEIGHT - fontsize*2) + fontsize;
+                
+                setPosition( &words.array[i], x, y );                                                
+                
+                SDL_FreeSurface(words.array[i].surface);
+                words.array[i].surface = TTF_RenderText_Solid(font, words.array[i].string, textcolor);          
+            }
+        }
+        
+        //need to add?
+        addvcounter += (thisframe - prevframe);
+        addacounter += (thisframe - prevframe);
+        
+        if (addvcounter > addv) {
+            addvcounter = 0;
+            //when one has to add velocity, one has to add velocity
+            for(i = 0; i < words.used; i++) {  
+                addVelocity(&words.array[i], amountv, 0.0);
+            }
+        }
+        
+        if (addacounter > adda) {
+            addacounter = 0;
+            r = ( rand()+rand()+rand()+rand() ) % wordpool.used;            
+            x = (double) (WIDTH - strlen(wordpool.strings[r]) * fontsize);
+            y = rand() % (HEIGHT - fontsize*2) + fontsize;
+            pushIntoWords ( &words, (Word) {x, y, words.array[0].vx, 0.0, 0.0, 0.0, wordpool.strings[r], NULL}, fontsize ); 
+            words.array[words.used-1].surface = TTF_RenderText_Solid(font, words.array[words.used-1].string, textcolor);            
+        }
+        
+        //collisions a     a
+        for(i = 0; i < words.used - 1; i++) {
+            for(j = i+1; j < words.used; j++) {           
+                if ( wordsCollide(&words.array[i], &words.array[j]) ) {
+                    fprintf(logfile, "time: %dms: %s %s %s\n", thisframe, "coll coll coll!!!", words.array[i].string, words.array[j].string);
+                    r = 1;
+                    //ok there was a collision, keep moving one of the words until no more collision between the two
+                    while ( wordsCollide(&words.array[i], &words.array[j]) ) {                                           
+                        //the correct word to move should be the one with smaller distance from right edge of the screen
+                        if ( WIDTH - (words.array[j].x + words.array[j].w) < WIDTH - (words.array[i].x + words.array[i].w) ) {
+                            words.array[j].y += 10; 
+                            if ( (words.array[j].y + words.array[j].h) > HEIGHT) {
+                                //if word was moved outside the screen put it to the top
+                                words.array[j].y = 0;
+                            }
+                        }
+                        else {
+                            words.array[i].y += 10; 
+                            if ( (words.array[i].y + words.array[i].h) > HEIGHT ) {
+                                words.array[i].y = 0;
+                            }
+                        }                        
+                        r++;
+                    }    
+                    fprintf(logfile, "solved collision between %s and %s, took %d rounds\n", words.array[i].string, words.array[j].string, r);
+                    
+                }
+                else{
+                    ;
+                    /*
+                    fprintf(logfile, "%d %d %d %d %f %d\n", 
+                    words.array[i].x < (words.array[j].x + words.array[j].w),
+                    words.array[i].x + words.array[i].w > words.array[j].x,
+                    words.array[i].y < (words.array[j].y + words.array[j].h),
+                    words.array[i].y + words.array[i].h > words.array[j].y),
+                    words.array[i].x,
+                    words.array[i].w;
+                    */
+                }
+            }
+        }
+        
                
         
         /* render */
@@ -235,6 +333,7 @@ int main(int argc, char *argv[])
 	}	
     
 	SDL_FreeSurface(background);
+    SDL_FreeSurface(typefield);
 	TTF_CloseFont(font);
 	TTF_Quit();
 	fclose(logfile);
