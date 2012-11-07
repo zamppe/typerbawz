@@ -1,0 +1,2 @@
+typerbawz.exe
+pause

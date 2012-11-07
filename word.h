@@ -43,4 +43,5 @@ void initWordpool ( Wordpool *w, size_t initialSize );
 void freeWordpool ( Wordpool *w );
 void pushIntoWordpool ( Wordpool *w, char *element );
 void printWordpool ( Wordpool *w );
+void loadLevel ( Wordpool *w, char *filename );
 #endif

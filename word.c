@@ -8,6 +8,14 @@ void initWords ( Words *w, size_t initialSize ) {
 }
 
 void freeWords ( Words *w ) {
+    /*
+    int i;
+    for(i = 0; i < w->used; i++){     
+        SDL_FreeSurface(w->array[i].surface);
+        free(w->array[i].string);
+        w->array[i].string = NULL;
+    }
+    */
     free(w->array);
     w->array = NULL;
     w->used = w->size = 0;
@@ -22,7 +30,7 @@ int pushIntoWords ( Words *w, Word element, int fontsize ) {
         w->array = (Word *)realloc(w->array, w->size * sizeof(Word));
     }
     element.w = fontsize * strlen(element.string);
-    element.h = fontsize;    
+    element.h = fontsize;
     w->array[w->used++] = element;
     return 1;
 }
@@ -145,7 +153,11 @@ void initWordpool( Wordpool *w, size_t initialSize ) {
 }
 
 void freeWordpool ( Wordpool *w ) {
-    free(w->strings);
+    int i;
+    for (i = 0; i < w->used; i++) {
+        free(w->strings[i]);
+    }
+    //free(w->strings);
     w->strings = NULL;
     w->used = w->size = 0;
 }
@@ -165,4 +177,22 @@ void printWordpool ( Wordpool *w ) {
     for (i = 0; i < w->used; i++) {
         printf("pool i: %i string: %s\n", i, w->strings[i]);
     }
+}
+
+void loadLevel ( Wordpool *w, char *filename ) {
+    FILE * pFile;
+    char baffer[30];
+    char path[50];
+    strcpy(path, "levels/");
+    strcat(path, filename);
+    pFile = fopen (path , "r");
+    if (pFile == NULL) {
+        perror ("Error opening file");
+    } 
+    else {
+        while ( fgets (baffer , 30 , pFile) != NULL) {                                                    
+            pushIntoWordpool(w, baffer);
+        }
+    fclose (pFile);
+    }     
 }
